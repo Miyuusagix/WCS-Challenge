@@ -3,43 +3,57 @@
 {% block title %}Les Argonautes{% endblock %}
 
 {% block head %}
-    <h1>
-        <img src="https://www.wildcodeschool.com/assets/logo_main-e4f3f744c8e717f1b7df3858dce55a86c63d4766d5d9a7f454250145f097c2fe.png" alt="Wild Code School logo" />
-        Les Argonautes
-  </h1>
+<h1>
+  <img src="https://www.wildcodeschool.com/assets/logo_main-e4f3f744c8e717f1b7df3858dce55a86c63d4766d5d9a7f454250145f097c2fe.png" alt="Wild Code School logo" />
+  Les Argonautes
+</h1>
 {% endblock %}
 
 {% block body %}
 <style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+  .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+  .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
 </style>
 
 <div class="example-wrapper">
 
 <header>
-    <h1>
-        <img src="https://www.wildcodeschool.com/assets/logo_main-e4f3f744c8e717f1b7df3858dce55a86c63d4766d5d9a7f454250145f097c2fe.png" alt="Wild Code School logo" />
-        Les Argonautes
-    </h1>
+  <h1>
+    <img src="https://www.wildcodeschool.com/assets/logo_main-e4f3f744c8e717f1b7df3858dce55a86c63d4766d5d9a7f454250145f097c2fe.png" alt="Wild Code School logo" />
+    Les Argonautes
+  </h1>
 </header>
 
-    <main>
+<main>
   
   <!-- New member form -->
   <h2>Ajouter un(e) Argonaute</h2>
-  <form class="new-member-form">
-    <label for="name">Nom de l&apos;Argonaute</label>
-    <input id="name" name="name" type="text" placeholder="Charalampos" />
-    <button type="submit">Envoyer</button>
-  </form>
+
+
+  {# 
+    <form class="new-member-form">
+      <label for="name">Nom de l&apos;Argonaute</label>
+      <input id="name" name="name" type="text" placeholder="Charalampos" />
+      <button type="submit">Envoyer</button>
+    </form> 
+  #}
   
+  <div class="new-member-form">
+  {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    {{ form_widget(form) }}
+
+    <button type="submit">Envoyer</button>
+
+  {{ form_end(form) }}
+  </div>
+
   <!-- Member list -->
   <h2>Membres de l'équipage</h2>
   <section class="member-list">
-    <div class="member-item">Eleftheria</div>
-    <div class="member-item">Gennadios</div>
-    <div class="member-item">Lysimachos</div>
+    {% for member in crew %}
+    <div class="member-item">{{ member.name }}</div>
+    {% endfor %}
   </section>
 </main>
 <footer>

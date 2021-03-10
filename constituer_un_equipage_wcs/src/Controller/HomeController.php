@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class HomeController extends AbstractController
@@ -20,6 +21,7 @@ class HomeController extends AbstractController
      * 
      * @Route("/home", name="home")
      */
+    /*
     public function index(CrewRepository $crewRepository): Response
     {
         // Tous les membres de l'équipage
@@ -30,11 +32,49 @@ class HomeController extends AbstractController
             // 'controller_name' => 'HomeController',
         ]);
     }
+    */
+
+     /**
+     * Affichage liste de l'équipage
+     *
+     * @Route("/home", name="home", methods={"GET", "POST"})
+     */
+    public function index(Request $request, CrewRepository $crewRepository)
+    {
+        // Nouvelle entité Job
+        $crew = new Crew();
+
+        // Form basé sur JobType et l'entité Job
+        $form = $this->createForm(CrewType::class, $crew);
+
+        // Prise en charge de la requête
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // On stocke le job en base
+            $em = $this->getDoctrine()->getManager();
+            // Le $job a été déjà mis à jour par le form
+            $em->persist($crew);
+            $em->flush();
+
+            // Flash
+            $this->addFlash('success', 'Crew ajouté.');
+        }
+
+        // Select all jobs ordered by name ASC
+        $crew = $crewRepository->findBy([], ['name' => 'ASC']);
+
+        // On affiche le form
+        return $this->render('home/index.html.twig', [
+            'form' => $form->createView(),
+            'crew' => $crew,
+        ]);
+    }
 
     /**
      * Enregistrer un nouvel équipier en BDD
      * 
-     * @Route("/add", name="home")
+     * @Route("/add", name="add")
      */
     public function create(EntityManagerInterface $entityManagerInterface, Request $request): Response
     {
@@ -70,22 +110,76 @@ class HomeController extends AbstractController
         ]);
     }
 
-    /**
-     * Create crew
+   
+
+   /**
+     * Méthode qui permet un équipier en BDD
      * 
-     * @Route("/crew/create", name="crew_post", methods="POST")
+     * @Route("/new/crew", name="newcrew", methods={"POST","PUT","PATCH"})
      */
-    public function post(Request $request, SerializerInterface $serializer)
+
+   public function newCrew( Request $request, SerializerInterface $serializer, ValidatorInterface $validator, EntityManagerInterface $entityManagerInterface): Response
+   {
+       
+       $jsonContent = $request->getContent();
+       
+       $newCrew = $serializer->deserialize($jsonContent, Crew::class, 'json' );
+      
+       $errors = $validator->validate($newCrew);
+
+       // Si nombre d'erreur > 0 alors on renvoie une erreur
+       if (count($errors) > 0) {
+           // On retourne le tableau d'erreurs en Json au front 
+           return $this->json('ça ne fonctionne pas', Response::HTTP_UNPROCESSABLE_ENTITY);
+       }
+
+       $entityManagerInterface->persist($newCrew);
+
+       $entityManagerInterface->flush();
+
+       $this->addFlash('success', 'Membre ajouté !');
+
+    //    return $this->json(['message' => 'L\'équipier a été créé'], Response::HTTP_CREATED);
+
+       return $this->render('home/index.html.twig');
+
+   }
+
+
+   /**
+     * Ajouter un équipier
+     *
+     * @Route("/crew/add", name="crew_add", methods={"GET", "POST"})
+     */
+    public function add(Request $request)
     {
-        // Le JSON du body
-        $jsonContent = $request->getContent();
-        
-        // Deserialization du JSON
-        $crew = $serializer->deserialize($jsonContent, Crew::class, 'json');
+        // Nouvelle entité Job
+        $crew = new Crew();
 
-        return $this->render('home/index.html.twig');
+        // Form basé sur JobType et l'entité Job
+        $form = $this->createForm(CrewType::class, $crew);
 
-        // dd($crew);
+        // Prise en charge de la requête
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // On stocke le job en base
+            $em = $this->getDoctrine()->getManager();
+            // Le $job a été déjà mis à jour par le form
+            $em->persist($crew);
+            $em->flush();
+
+            // Flash
+            $this->addFlash('success', 'équipier ajouté.');
+
+            // // Retour vers la liste des Jobs
+            // return $this->redirectToRoute('back_job_show', ['id' => $job->getId()]);
+        }
+
+        // On affiche le form
+        return $this->render('home/index.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
 }
